@@ -50,7 +50,7 @@ public class TaskController {
         }
     }
 
-    @PostMapping("/tasks/{id}")
+    @PostMapping("/tasks")
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
         try {
             Task _task = taskRepository

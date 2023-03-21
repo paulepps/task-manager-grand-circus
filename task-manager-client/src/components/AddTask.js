@@ -6,12 +6,12 @@ const AddTask = () => {
     id: null,
     title: "",
     dueDate: "",
-    complete: false
+    complete: false,
   };
   const [task, setTask] = useState(initialTaskState);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = event => {
+  const handleInputChange = (event) => {
     const { name, value } = event.target;
     setTask({ ...task, [name]: value });
   };
@@ -19,21 +19,21 @@ const AddTask = () => {
   const saveTask = () => {
     var data = {
       title: task.title,
-      dueDate: task.dueDate
+      dueDate: task.dueDate,
     };
 
     TaskDataService.create(data)
-      .then(response => {
+      .then((response) => {
         setTask({
           id: response.data.id,
           title: response.data.title,
           dueDate: response.data.dueDate,
-          complete: response.data.complete
+          complete: response.data.complete,
         });
         setSubmitted(true);
         console.log(response.data);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
@@ -44,16 +44,17 @@ const AddTask = () => {
   };
 
   return (
-<div className="submit-form">
+    <div className="submit-form">
+      <h2>Add a New Task</h2>
       {submitted ? (
         <div>
-          <h4>You submitted successfully!</h4>
+          <strong>New task was added successfully!</strong>
           <button className="btn btn-success" onClick={newTask}>
             Add
           </button>
         </div>
       ) : (
-        <div>
+        <form onSubmit={saveTask}>
           <div className="form-group">
             <label htmlFor="title">Title</label>
             <input
@@ -80,12 +81,13 @@ const AddTask = () => {
             />
           </div>
 
-          <button onClick={saveTask} className="btn btn-success">
+          <button type="submit" className="btn btn-success">
             Submit
           </button>
-        </div>
+        </form>
       )}
-    </div>  );
+    </div>
+  );
 };
 
 export default AddTask;

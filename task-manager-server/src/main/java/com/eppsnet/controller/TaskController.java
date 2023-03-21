@@ -3,13 +3,14 @@ package com.eppsnet.controller;
 import com.eppsnet.model.Task;
 import com.eppsnet.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -20,14 +21,15 @@ public class TaskController {
     TaskRepository taskRepository;
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<Task>> getAllTasks(@RequestParam(required = false) String title) {
+    public ResponseEntity<List<Task>> getAllTasks(
+            @RequestParam(required = false) String title) {
         try {
             List<Task> tasks = new ArrayList<Task>();
-
-            if (title == null)
+            if (title == null) {
                 taskRepository.findAll().forEach(tasks::add);
-            else
+            } else {
                 taskRepository.findByTitleContaining(title).forEach(tasks::add);
+            }
 
             if (tasks.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -96,10 +98,11 @@ public class TaskController {
         }
     }
 
-    @GetMapping("/tasks/complete")
-    public ResponseEntity<List<Task>> findByComplete() {
+    @GetMapping("/tasks/complete/{complete}")
+    public ResponseEntity<List<Task>> findByComplete(@PathVariable("complete") boolean complete) {
+
         try {
-            List<Task> tasks = taskRepository.findByComplete(true);
+            List<Task> tasks = taskRepository.findByComplete(complete);
 
             if (tasks.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

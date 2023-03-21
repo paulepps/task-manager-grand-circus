@@ -28,6 +28,10 @@ const findByTitle = title => {
   return http.get(`/tasks?title=${title}`);
 };
 
+const findByComplete = complete => {
+  return http.get(`/tasks/complete/${complete}`);
+}
+
 const TaskService = {
   getAll,
   get,
@@ -35,7 +39,8 @@ const TaskService = {
   update,
   remove,
   removeAll,
-  findByTitle
+  findByTitle,
+  findByComplete
 };
 
 export default TaskService;

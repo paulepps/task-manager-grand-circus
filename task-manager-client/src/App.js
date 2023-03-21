@@ -1,6 +1,8 @@
 import React from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { Switch, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.css";
+import "@fortawesome/fontawesome-free/js/all.js";
 import "./App.css";
 
 import AddTask from "./components/AddTask";
@@ -29,12 +31,11 @@ function App() {
       </nav>
 
       <div className="container mt-3">
-        <Routes>
-          <Route path="/" element={<TasksList/>} />
-          <Route path="/tasks" element={<TasksList/>} />
-          <Route path="/add" element={<AddTask/>} />
-          <Route path="/tasks/:id" element={<Task/>} />
-        </Routes>
+        <Switch>
+          <Route exact path={["/", "/tasks"]} component={TasksList} />
+          <Route exact path="/add" component={AddTask} />
+          <Route path="/tasks/:id" component={Task} />
+        </Switch>
       </div>
     </div>
   );

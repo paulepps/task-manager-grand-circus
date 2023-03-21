@@ -1,66 +1,137 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import TaskDataService from "../services/TaskService";
-import { Link } from "react-router-dom";
+import { useTable, useFilters, useGlobalFilter, useSortBy } from "react-table";
+import { DropdownFilter, DefaultFilterForColumn } from "../Filter";
 
-const TasksList = () => {
+const TasksList = (props) => {
   const [tasks, setTasks] = useState([]);
-  const [currentTask, setCurrentTask] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(-1);
   const [searchTitle, setSearchTitle] = useState("");
+  const tasksRef = useRef();
+
+  tasksRef.current = tasks;
 
   useEffect(() => {
     retrieveTasks();
   }, []);
 
-  const onChangeSearchTitle = e => {
+  const onChangeSearchTitle = (e) => {
     const searchTitle = e.target.value;
     setSearchTitle(searchTitle);
   };
 
   const retrieveTasks = () => {
     TaskDataService.getAll()
-      .then(response => {
+      .then((response) => {
         setTasks(response.data);
         console.log(response.data);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
   const refreshList = () => {
     retrieveTasks();
-    setCurrentTask(null);
-    setCurrentIndex(-1);
-  };
-
-  const setActiveTask = (task, index) => {
-    setCurrentTask(task);
-    setCurrentIndex(index);
   };
 
   const removeAllTasks = () => {
     TaskDataService.removeAll()
-      .then(response => {
+      .then((response) => {
         console.log(response.data);
         refreshList();
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
   const findByTitle = () => {
     TaskDataService.findByTitle(searchTitle)
-      .then(response => {
+      .then((response) => {
         setTasks(response.data);
-        console.log(response.data);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
+  const openTask = (rowIndex) => {
+    const id = tasksRef.current[rowIndex].id;
+    props.history.push("/tasks/" + id);
+  };
+
+  const deleteTask = (rowIndex) => {
+    const id = tasksRef.current[rowIndex].id;
+
+    TaskDataService.remove(id)
+      .then((response) => {
+        props.history.push("/tasks");
+
+        let newTasks = [...tasksRef.current];
+        newTasks.splice(rowIndex, 1);
+
+        setTasks(newTasks);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        Header: "Title",
+        accessor: "title",
+        disableFilters: true,
+      },
+      {
+        Header: "Due Date",
+        accessor: "dueDate",
+      },
+      {
+        Header: "Complete",
+        accessor: "complete",
+        disableSortBy: true,
+        Filter: DropdownFilter,
+        Cell: (props) => {
+          return props.value ? "True" : "False";
+        },
+      },
+      {
+        Header: "Actions",
+        accessor: "actions",
+        disableFilters: true,
+        disableSortBy: true,
+        Cell: (props) => {
+          const rowIdx = props.row.id;
+          return (
+            <div>
+              <span onClick={() => openTask(rowIdx)}>
+                <i className="far fa-edit action mr-2"></i>
+              </span>
+
+              <span onClick={() => deleteTask(rowIdx)}>
+                <i className="fas fa-trash action"></i>
+              </span>
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable(
+      {
+        columns,
+        data: tasks,
+        defaultColumn: { Filter: DefaultFilterForColumn },
+      },
+      useFilters,
+      useGlobalFilter,
+      useSortBy
+    );
   return (
     <div className="list row">
       <div className="col-md-8">
@@ -83,67 +154,54 @@ const TasksList = () => {
           </div>
         </div>
       </div>
-      <div className="col-md-6">
-        <h4>Tasks List</h4>
-
-        <ul className="list-group">
-          {tasks &&
-            tasks.map((task, index) => (
-              <li
-                className={
-                  "list-group-item " + (index === currentIndex ? "active" : "")
-                }
-                onClick={() => setActiveTask(task, index)}
-                key={index}
-              >
-                {task.title}
-              </li>
-            ))}
-        </ul>
-
-        <button
-          className="m-3 btn btn-sm btn-danger"
-          onClick={removeAllTasks}
+      <div className="col-md-12 list">
+        <h2>Task Manager</h2>
+        <table
+          className="table table-striped table-bordered"
+          {...getTableProps()}
         >
+          <thead>
+            {headerGroups.map((headerGroup) => (
+              <tr {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map((column) => (
+                  <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                    {column.render("Header")}
+                    <div>
+                      {column.canFilter ? column.render("Filter") : null}
+                    </div>
+                    <span>
+                    {column.isSorted
+                      ? column.isSortedDesc
+                        ? ' 🔽'
+                        : ' 🔼'
+                      : ''}
+                  </span>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, i) => {
+              prepareRow(row);
+              return (
+                <tr {...row.getRowProps()}>
+                  {row.cells.map((cell) => {
+                    return (
+                      <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="col-md-8">
+        <button className="btn btn-sm btn-danger" onClick={removeAllTasks}>
           Remove All
         </button>
-      </div>
-      <div className="col-md-6">
-        {currentTask ? (
-          <div>
-            <h4>Task</h4>
-            <div>
-              <label>
-                <strong>Title:</strong>
-              </label>
-              {currentTask.title}
-            </div>
-            <div>
-              <label>
-                <strong>Due Date:</strong>
-              </label>
-              {currentTask.dueDate}
-            </div>
-            <div>
-              <label>
-                <strong>Status:</strong>
-              </label>
-              {currentTask.complete ? "Complete" : "Pending"}
-            </div>
-
-            <Link
-              to={"/tasks/" + currentTask.id}
-              className="badge badge-warning"
-            >
-              Edit
-            </Link>
-          </div>
-        ) : (
-          <div>
-            <br />
-            <p>Please click on a Task...</p>
-          </div>
-        )}
       </div>
     </div>
   );

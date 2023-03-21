@@ -1,83 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
 import TaskDataService from "../services/TaskService";
 
-const Task = props => {
-  const { id }= useParams();
-  let navigate = useNavigate();
-
+const Task = (props) => {
   const initialTaskState = {
     id: null,
     title: "",
     dueDate: "",
-    complete: false
+    complete: false,
   };
   const [currentTask, setCurrentTask] = useState(initialTaskState);
   const [message, setMessage] = useState("");
 
-  const getTask = id => {
+  const getTask = (id) => {
     TaskDataService.get(id)
-      .then(response => {
+      .then((response) => {
         setCurrentTask(response.data);
         console.log(response.data);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
   useEffect(() => {
-    if (id)
-      getTask(id);
-  }, [id]);
+    getTask(props.match.params.id);
+  }, [props.match.params.id]);
 
-  const handleInputChange = event => {
+  const handleInputChange = (event) => {
     const { name, value } = event.target;
     setCurrentTask({ ...currentTask, [name]: value });
   };
 
-  const updatePublished = status => {
+  const updateComplete = (status) => {
     var data = {
       id: currentTask.id,
       title: currentTask.title,
       dueDate: currentTask.dueDate,
-      complete: status
+      complete: status,
     };
 
     TaskDataService.update(currentTask.id, data)
-      .then(response => {
+      .then((response) => {
         setCurrentTask({ ...currentTask, complete: status });
         console.log(response.data);
+        setMessage("Status was updated successfully");
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
   const updateTask = () => {
+    if (!currentTask.title || !currentTask.dueDate) {
+      setMessage("All fields are required");
+      return;
+    }
+    
     TaskDataService.update(currentTask.id, currentTask)
-      .then(response => {
+      .then((response) => {
         console.log(response.data);
         setMessage("The task was updated successfully!");
       })
-      .catch(e => {
-        console.log(e);
-      });
-  };
-
-  const deleteTask = () => {
-    TaskDataService.remove(currentTask.id)
-      .then(response => {
-        console.log(response.data);
-        navigate("/tasks");
-      })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   };
 
   return (
-<div>
+    <div>
       {currentTask ? (
         <div className="edit-form">
           <h4>Task</h4>
@@ -87,6 +77,7 @@ const Task = props => {
               <input
                 type="text"
                 className="form-control"
+                required
                 id="title"
                 name="title"
                 value={currentTask.title}
@@ -96,7 +87,8 @@ const Task = props => {
             <div className="form-group">
               <label htmlFor="dueDate">Description</label>
               <input
-                type="text"
+                type="date"
+                required
                 className="form-control"
                 id="dueDate"
                 name="dueDate"
@@ -107,35 +99,31 @@ const Task = props => {
 
             <div className="form-group">
               <label>
-                <strong>Status:</strong>
+                <strong>Complete:&nbsp;</strong>
               </label>
-              {currentTask.complete ? "Published" : "Pending"}
+              {currentTask.complete ? "True" : "False"}
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              {currentTask.complete ? (
+                <button
+                  className="badge badge-primary mr-2"
+                  onClick={() => updateComplete(false)}
+                >
+                  Incomplete
+                </button>
+              ) : (
+                <button
+                  className="badge badge-primary mr-2"
+                  onClick={() => updateComplete(true)}
+                >
+                  Complete
+                </button>
+              )}
             </div>
           </form>
 
-          {currentTask.complete ? (
-            <button
-              className="badge badge-primary mr-2"
-              onClick={() => updatePublished(false)}
-            >
-              UnPublish
-            </button>
-          ) : (
-            <button
-              className="badge badge-primary mr-2"
-              onClick={() => updatePublished(true)}
-            >
-              Publish
-            </button>
-          )}
-
-          <button className="badge badge-danger mr-2" onClick={deleteTask}>
-            Delete
-          </button>
-
           <button
             type="submit"
-            className="badge badge-success"
+            className="btn btn-success"
             onClick={updateTask}
           >
             Update
@@ -143,13 +131,10 @@ const Task = props => {
           <p>{message}</p>
         </div>
       ) : (
-        <div>
-          <br />
-          <p>Please click on a Task...</p>
-        </div>
+        <></>
       )}
-    </div> 
-  ); 
+    </div>
+  );
 };
 
 export default Task;

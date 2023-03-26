@@ -24,29 +24,29 @@ public class Task {
     public Task() {
     }
 
-    public Task(final String title, final LocalDate dueDate, final boolean complete) {
+    public Task(String title, LocalDate dueDate, boolean complete) {
         this.title = title;
         this.dueDate = dueDate;
         this.complete = complete;
     }
 
     public long getId() {
-        return this.id;
+        return id;
     }
 
     public String getTitle() {
-        return this.title;
+        return title;
     }
 
-    public void setTitle(final String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
     public LocalDate getDueDate() {
-        return this.dueDate;
+        return dueDate;
     }
 
-    public void setDueDate(final LocalDate dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
@@ -54,7 +54,7 @@ public class Task {
         return complete;
     }
 
-    public void setComplete(final boolean complete) {
+    public void setComplete(boolean complete) {
         this.complete = complete;
     }
 

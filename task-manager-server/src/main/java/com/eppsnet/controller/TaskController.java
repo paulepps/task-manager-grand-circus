@@ -3,9 +3,6 @@ package com.eppsnet.controller;
 import com.eppsnet.model.Task;
 import com.eppsnet.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,11 +21,11 @@ public class TaskController {
     public ResponseEntity<List<Task>> getAllTasks(
             @RequestParam(required = false) String title) {
         try {
-            List<Task> tasks = new ArrayList<Task>();
+            List<Task> tasks = new ArrayList<>();
             if (title == null) {
-                taskRepository.findAll().forEach(tasks::add);
+                tasks.addAll(taskRepository.findAll());
             } else {
-                taskRepository.findByTitleContaining(title).forEach(tasks::add);
+                tasks.addAll(taskRepository.findByTitleContaining(title));
             }
 
             if (tasks.isEmpty()) {

@@ -23,7 +23,6 @@ const TasksList = (props) => {
     TaskDataService.getAll()
       .then((response) => {
         setTasks(response.data);
-        console.log(response.data);
       })
       .catch((e) => {
         console.log(e);
